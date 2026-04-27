@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CustomTee | Thanh toán</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header mb-4">
+    <nav class="navbar navbar-dark navbar-expand-lg container">
+      <a class="navbar-brand brand-logo" href="index.html">
+        <span class="brand-fe">Custom</span><span class="text-white">Tee</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <!-- JS render menu -->
+      </div>
+    </nav>
+  </header>
+
+  <main class="container my-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="cart.html">Giỏ hàng</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Thanh toán</li>
+      </ol>
+    </nav>
+    <h1 class="h3 mb-4 fw-bold">Thông tin thanh toán</h1>
+    
+    <div class="row g-4">
+        <div class="col-md-7">
+            <form id="checkout-form" class="glass-panel">
+            <div class="mb-3">
+                <label for="name" class="form-label fw-bold">Họ và tên người nhận</label>
+                <input id="name" name="name" class="form-control" required />
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                <label for="phone" class="form-label fw-bold">Số điện thoại</label>
+                <input id="phone" name="phone" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                <label for="email" class="form-label fw-bold">Email</label>
+                <input id="email" name="email" type="email" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3 mt-3">
+                <label for="address" class="form-label fw-bold">Địa chỉ giao hàng</label>
+                <input id="address" name="address" class="form-control" required />
+            </div>
+            <div class="mb-4">
+                <label for="note" class="form-label fw-bold">Ghi chú thêm</label>
+                <textarea id="note" name="note" rows="3" class="form-control" placeholder="Ghi chú về việc in ấn, giao hàng..."></textarea>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg w-100">Xác Nhận Đặt In</button>
+            </div>
+            </form>
+            <div id="result" class="mt-3" hidden></div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="glass-panel bg-light">
+                <h4 class="mb-3 fw-bold">Tóm tắt đơn hàng</h4>
+                <div id="checkout-summary"></div>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <footer class="site-footer mt-5">
+    <div class="container py-3 text-center text-secondary small">
+      <p class="mb-0">&copy; <span id="year"></span> CustomTee - Xây dựng theo cấu trúc FE Shop.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { getCart, clearCart, cartTotal } from './js/cart.js';
+    import { formatCurrency, updateNavbar } from './js/utils.js';
+    import { getCurrentUser } from './js/auth.js';
+    import { PRODUCTS } from './data/products.js';
+
+    updateNavbar();
+
+    const currentUser = getCurrentUser();
+    if(!currentUser) {
+        alert('Bạn cần đăng nhập để thanh toán!');
+        window.location.href = 'login.html';
+    }
+
+    // Render summary
+    const cart = getCart();
+    if(cart.length === 0) {
+        document.getElementById('checkout-form').innerHTML = '<div class="alert alert-warning">Giỏ hàng trống.</div>';
+    } else {
+        const summaryHtml = cart.map(item => {
+            const p = PRODUCTS.find(x => String(x.id)===String(item.id));
+            return `
+                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <div>
+                        <div class="fw-bold">${p.name} <span class="text-muted fw-normal">x${item.qty}</span></div>
+                        <div class="small text-primary">In: ${item.printText}</div>
+                    </div>
+                    <div class="fw-semibold">${formatCurrency(p.price * item.qty)}</div>
+                </div>
+            `;
+        }).join('');
+        const total = cartTotal(PRODUCTS);
+        document.getElementById('checkout-summary').innerHTML = `
+            ${summaryHtml}
+            <div class="d-flex justify-content-between mt-3 pt-2">
+                <span class="fw-bold">Tổng thanh toán</span>
+                <span class="fw-bold fs-5 text-danger">${formatCurrency(total)}</span>
+            </div>
+        `;
+    }
+
+    const form = document.getElementById('checkout-form');
+    const result = document.getElementById('result');
+
+    if(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(form).entries());
+            const orderId = 'ORD' + Date.now().toString().slice(-6);
+            
+            // Generate items string for history
+            const orderItems = cart.map(c => {
+                const p = PRODUCTS.find(x => String(x.id) === String(c.id));
+                return `<b>${p.name}</b> (In: <i>${c.printText}</i>) x${c.qty}`;
+            }).join('<br>');
+
+            const newOrder = {
+                id: orderId,
+                user: currentUser.username,
+                date: new Date().toLocaleString('vi-VN'),
+                items: orderItems,
+                total: cartTotal(PRODUCTS),
+                status: 'Chờ Xử Lý',
+                customerInfo: data
+            };
+
+            const orders = JSON.parse(localStorage.getItem('DB_ORDERS')) || [];
+            orders.push(newOrder);
+            localStorage.setItem('DB_ORDERS', JSON.stringify(orders));
+
+            clearCart();
+            result.hidden = false;
+            form.hidden = true;
+            result.innerHTML = `
+                <div class="alert alert-success p-4 rounded-4 shadow-sm border-0 bg-white">
+                <h4 class="alert-heading text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Đặt hàng thành công!</h4>
+                <p class="mb-1">Cảm ơn bạn đã đặt in áo tại CustomTee.</p>
+                <p class="mb-3">Mã đơn hàng của bạn là: <strong class="fs-5 text-dark">${orderId}</strong></p>
+                <hr>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-primary" href="history.html">Xem lịch sử đơn hàng</a>
+                    <a class="btn btn-outline-secondary" href="index.html">Về trang chủ</a>
+                </div>
+                </div>`;
+            updateNavbar();
+        });
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

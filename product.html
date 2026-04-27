@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CustomTee | Chi tiết sản phẩm</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header mb-4">
+    <nav class="navbar navbar-dark navbar-expand-lg container">
+      <a class="navbar-brand brand-logo" href="index.html">
+        <span class="brand-fe">Custom</span><span class="text-white">Tee</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <!-- JS render menu -->
+      </div>
+    </nav>
+  </header>
+
+  <main class="container my-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Trang chủ</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Chi tiết áo</li>
+      </ol>
+    </nav>
+    <div id="product-detail"></div>
+  </main>
+
+  <footer class="site-footer mt-5">
+    <div class="container py-3 text-center text-secondary small">
+      <p class="mb-0">&copy; <span id="year"></span> CustomTee - Xây dựng theo cấu trúc FE Shop.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { addToCart } from './js/cart.js';
+    import { byId, formatCurrency, loadProducts, updateNavbar } from './js/utils.js';
+    import { getCurrentUser } from './js/auth.js';
+    import { PRODUCTS } from './data/products.js';
+
+    updateNavbar();
+
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const list = loadProducts(PRODUCTS);
+    const data = list.find(p => String(p.id) === String(id));
+    const root = document.getElementById('product-detail');
+
+    if(!data){
+      root.innerHTML = `
+        <div class="alert alert-warning">
+          <h4 class="alert-heading">Không tìm thấy sản phẩm</h4>
+          <p>Có thể đường dẫn sai hoặc sản phẩm đã bị xoá.</p>
+          <hr>
+          <a href="index.html" class="btn btn-outline-info">← Về trang chủ</a>
+        </div>`;
+    } else {
+      root.innerHTML = `
+        <div class="row g-5 align-items-start glass-panel">
+          <div class="col-12 col-md-5">
+            <div class="bg-light border border-secondary rounded p-2">
+              <img src="${data.image}" alt="${data.name}" class="img-fluid rounded w-100 object-fit-cover" style="height: 400px;">
+            </div>
+          </div>
+          <div class="col-12 col-md-7">
+            <h1 class="h3 fw-bold">${data.name}</h1>
+            <p class="text-muted mb-4">Mã SP: <strong>${data.id}</strong> | Màu: <strong>${data.color}</strong></p>
+            
+            <p class="fs-3 fw-bold text-danger mb-4">${formatCurrency(data.price)}</p>
+            
+            <div class="bg-light p-3 rounded mb-4 border">
+                <strong>Mô tả:</strong>
+                <p class="mb-0 text-secondary mt-1">${data.description}</p>
+            </div>
+
+            <div class="mb-3">
+              <label for="printText" class="form-label fw-bold">Nội dung in lên áo (Tên, Số, Lớp...)</label>
+              <input id="printText" type="text" class="form-control" placeholder="VD: Lớp 10A1, Messi 10, Trơn không in...">
+            </div>
+
+            <div class="d-flex align-items-end gap-3 mb-4">
+              <div>
+                <label for="qty" class="form-label fw-bold mb-1">Số lượng</label>
+                <input id="qty" type="number" min="1" max="${data.stock}" value="1" class="form-control text-center" style="width:80px">
+              </div>
+            </div>
+            
+            <div class="d-flex gap-3 mt-4">
+              <button id="btn-add" type="button" class="btn btn-primary btn-lg flex-grow-1" ${data.stock<=0?'disabled':''}>Thêm vào giỏ hàng</button>
+              <a class="btn btn-outline-secondary btn-lg" href="cart.html">Xem giỏ</a>
+            </div>
+          </div>
+        </div>`;
+      
+      const qty = byId('qty');
+      const printText = byId('printText');
+      
+      document.getElementById('btn-add').addEventListener('click', () => {
+        const user = getCurrentUser();
+        if(!user) {
+            alert('Bạn cần đăng nhập để đặt in áo!');
+            window.location.href = 'login.html';
+            return;
+        }
+        if(user.role === 'admin') {
+            alert('Tài khoản Admin không thể đặt hàng.');
+            return;
+        }
+
+        const text = printText.value.trim() || 'Trơn (Không in)';
+        addToCart(data.id, parseInt(qty.value || '1', 10), text);
+        
+        alert(`Đã thêm vào giỏ hàng:\nÁo: ${data.name}\nIn: ${text}\nSố lượng: ${qty.value}`);
+        updateNavbar();
+      });
+    }
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

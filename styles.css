@@ -1,0 +1,54 @@
+:root{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --brand:#2563eb; /* Blue 600 - Tailwind CustomTee brand */
+  --accent:#10b981; 
+  --danger:#ef4444;
+  --border:#e2e8f0;
+}
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+a{ color:inherit; text-decoration:none }
+
+.site-header{ position:sticky; top:0; z-index:10; background:#111827; border-bottom:1px solid var(--border) }
+.navbar-brand.brand-logo{ font-weight:800; letter-spacing:1px; color:#fff !important; }
+.brand-fe{ color: #60a5fa; }
+.navbar-dark .nav-link{ color:#d1d5db !important; }
+.navbar-dark .nav-link.active{ color: #fff !important; font-weight:bold; }
+.navbar-dark .navbar-toggler{ background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+
+.hero-banner {
+    background-color: #2563eb;
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.card{ background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition: all 0.3s ease; }
+.card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+.card .ratio { background:#f1f5f9; }
+.card-img-top { object-fit: cover; }
+
+.price{ font-weight:800; color:var(--danger); font-size: 1.1rem; }
+
+.btn-primary { background-color: var(--brand); border-color: var(--brand); font-weight:600; border-radius: 8px;}
+.btn-primary:hover { background-color: #1d4ed8; border-color: #1d4ed8; }
+
+.table{ background:var(--card); border-radius:12px; overflow:hidden; }
+.table th { background-color: #f1f5f9; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; }
+
+.form-control, .form-select { border-radius: 8px; border: 1px solid var(--border); padding: 0.6rem 1rem;}
+.form-control:focus, .form-select:focus { border-color: var(--brand); box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25); }
+
+.glass-panel {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    padding: 2rem;
+    border: 1px solid var(--border);
+}
+
+.site-footer{ border-top:1px solid var(--border); margin-top:28px; padding:16px 0; color:var(--muted); background:#f1f5f9 }

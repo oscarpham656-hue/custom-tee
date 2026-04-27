@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CustomTee | Xác thực tài khoản</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header mb-4">
+    <nav class="navbar navbar-dark navbar-expand-lg container">
+      <a class="navbar-brand brand-logo" href="index.html">
+        <span class="brand-fe">Custom</span><span class="text-white">Tee</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <!-- JS render menu -->
+      </div>
+    </nav>
+  </header>
+
+  <main class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="glass-panel">
+                <h2 class="text-center fw-bold mb-4" id="auth-title">Đăng Nhập</h2>
+                
+                <!-- Login Form -->
+                <form id="form-login">
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" id="lg-user" class="form-control" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" id="lg-pass" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold mb-3">Đăng Nhập</button>
+                    <div class="d-flex justify-content-between small">
+                        <a href="#" id="to-register" class="text-decoration-none">Tạo tài khoản</a>
+                        <a href="#" id="to-forgot" class="text-decoration-none text-muted">Quên mật khẩu?</a>
+                    </div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="form-register" class="d-none">
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" id="rg-user" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email (Nhận OTP)</label>
+                        <input type="email" id="rg-email" class="form-control" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" id="rg-pass" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold mb-3">Đăng Ký & Nhận OTP</button>
+                    <div class="text-center small">
+                        <a href="#" class="to-login text-decoration-none text-muted">Quay lại đăng nhập</a>
+                    </div>
+                </form>
+
+                <!-- Forgot Password Form -->
+                <form id="form-forgot" class="d-none">
+                    <p class="text-muted small text-center mb-3">Hệ thống sẽ gửi mã xác nhận vào Email của bạn.</p>
+                    <div class="mb-4">
+                        <label class="form-label">Email đã đăng ký</label>
+                        <input type="email" id="fg-email" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold mb-3 text-white">Gửi mã OTP</button>
+                    <div class="text-center small">
+                        <a href="#" class="to-login text-decoration-none text-muted">Quay lại đăng nhập</a>
+                    </div>
+                </form>
+
+                <!-- OTP Form -->
+                <form id="form-otp" class="d-none text-center">
+                    <div class="alert alert-info small mb-4">Mã OTP gồm 6 số đã được gửi tới Email của bạn.</div>
+                    <input type="text" id="otp-input" maxlength="6" class="form-control form-control-lg text-center fs-2 tracking-widest font-monospace mb-4" placeholder="------" required>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">Xác Nhận OTP</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <footer class="site-footer mt-5">
+    <div class="container py-3 text-center text-secondary small">
+      <p class="mb-0">&copy; <span id="year"></span> CustomTee - Xây dựng theo cấu trúc FE Shop.</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { updateNavbar } from './js/utils.js';
+    import { login, register, resetPassword, getUsers } from './js/auth.js';
+
+    updateNavbar();
+
+    const title = document.getElementById('auth-title');
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
+    const formForgot = document.getElementById('form-forgot');
+    const formOtp = document.getElementById('form-otp');
+
+    let pendingAction = null;
+    let tempUserData = null;
+
+    function switchForm(formId, titleText) {
+        formLogin.classList.add('d-none');
+        formRegister.classList.add('d-none');
+        formForgot.classList.add('d-none');
+        formOtp.classList.add('d-none');
+        
+        document.getElementById(formId).classList.remove('d-none');
+        title.innerText = titleText;
+    }
+
+    document.getElementById('to-register').addEventListener('click', (e) => {
+        e.preventDefault(); switchForm('form-register', 'Đăng Ký Tài Khoản');
+    });
+    document.getElementById('to-forgot').addEventListener('click', (e) => {
+        e.preventDefault(); switchForm('form-forgot', 'Khôi Phục Mật Khẩu');
+    });
+    document.querySelectorAll('.to-login').forEach(el => el.addEventListener('click', (e) => {
+        e.preventDefault(); switchForm('form-login', 'Đăng Nhập');
+    }));
+
+    function simulateSendOTP(action, userObj, emailTarget) {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        localStorage.setItem('TEMP_OTP', otp);
+        pendingAction = action;
+        tempUserData = userObj;
+
+        alert(`[HỆ THỐNG MÔ PHỎNG]\nMã OTP gửi tới ${emailTarget} là: ${otp}`);
+        
+        switchForm('form-otp', 'Xác Thực 2 Bước');
+    }
+
+    formLogin.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const u = document.getElementById('lg-user').value;
+        const p = document.getElementById('lg-pass').value;
+        
+        const users = getUsers();
+        const user = users.find(x => x.username === u && x.password === p);
+        if (user) {
+            simulateSendOTP('login', user, user.email);
+        } else {
+            alert('Sai tên đăng nhập hoặc mật khẩu!');
+        }
+    });
+
+    formRegister.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const u = document.getElementById('rg-user').value;
+        const em = document.getElementById('rg-email').value;
+        const p = document.getElementById('rg-pass').value;
+        
+        const users = getUsers();
+        if (users.find(x => x.username === u)) {
+            alert('Tên đăng nhập đã tồn tại!'); return;
+        }
+        simulateSendOTP('register', { username: u, email: em, password: p }, em);
+    });
+
+    formForgot.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const em = document.getElementById('fg-email').value;
+        const users = getUsers();
+        const user = users.find(x => x.email === em);
+        if (user) {
+            simulateSendOTP('forgot', user, em);
+        } else {
+            alert('Email chưa được đăng ký!');
+        }
+    });
+
+    formOtp.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const inputOtp = document.getElementById('otp-input').value;
+        const realOtp = localStorage.getItem('TEMP_OTP');
+
+        if(inputOtp === realOtp) {
+            localStorage.removeItem('TEMP_OTP');
+            
+            if(pendingAction === 'login') {
+                localStorage.setItem('CURRENT_USER', JSON.stringify(tempUserData));
+                alert('Đăng nhập thành công!');
+                window.location.href = tempUserData.role === 'admin' ? 'admin.html' : 'index.html';
+            } 
+            else if(pendingAction === 'register') {
+                register(tempUserData.username, tempUserData.email, tempUserData.password);
+                alert('Đăng ký thành công! Vui lòng đăng nhập lại.');
+                switchForm('form-login', 'Đăng Nhập');
+            }
+            else if(pendingAction === 'forgot') {
+                const newPass = prompt("Xác thực thành công. Vui lòng nhập mật khẩu mới:");
+                if(newPass) {
+                    resetPassword(tempUserData.email, newPass);
+                    alert('Đổi mật khẩu thành công!');
+                    switchForm('form-login', 'Đăng Nhập');
+                }
+            }
+        } else {
+            alert('Sai mã OTP!');
+        }
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
